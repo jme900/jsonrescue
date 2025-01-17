@@ -27,16 +27,16 @@ pip install jsonrescue
 ### Example
 
 ```python
-from jsonrescue.custom_schema import Schema
+from jsonrescue.custom_schema import Schema, SchemaType
 from jsonrescue.parser import Parser
 
 # Define a schema for validation
 schema = Schema(
-    type='object',
+    type=SchemaType.OBJECT,
     properties={
-        'name': Schema(type='string'),
-        'age': Schema(type='number'),
-        'emails': Schema(type='array', items=Schema(type='string'))
+        'name': Schema(type=SchemaType.STRING),
+        'age': Schema(type=SchemaType.NUMBER),
+        'emails': Schema(type=SchemaType.ARRAY, items=Schema(type=SchemaType.STRING))
     },
     required=['name', 'age']
 )
@@ -91,7 +91,7 @@ else:
 
 #### Initialization
 
-```python
+```
 Parser(schema: Schema)
 ```
 - **schema:** An instance of the `Schema` class defining the expected JSON structure. To parse the text for JSON 
@@ -152,7 +152,7 @@ python -m unittest test.py
 - **Missing Required Field:**
   ```python
   input_text = '{"name": "Test", "emails": ["test@example.com"]}'
-  assert parser_with_schema.rescue(input_text) is None
+  output_text = None
   ```
 
 - **Incomplete Brackets:**

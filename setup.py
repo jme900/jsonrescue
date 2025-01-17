@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='jsonrescue',
-    version="1.0.3",
+    version="1.0.4",
     description="A library to parse and repair malformed JSON-like text.",
     author='Jesse English',
     author_email='jme900@gmail.com',
