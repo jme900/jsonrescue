@@ -1,6 +1,6 @@
 import unittest
-from json_rescue import JSONRescue
-from custom_schema import Schema
+from jsonrescue.json_rescue import JSONRescue
+from jsonrescue.custom_schema import Schema
 
 parser_with_schema = JSONRescue(Schema(
     type='object',
