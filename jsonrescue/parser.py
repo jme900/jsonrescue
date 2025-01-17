@@ -3,7 +3,7 @@ import regex
 import re
 from typing import Any, List
 from json.decoder import JSONDecodeError
-from custom_schema import Schema
+from .custom_schema import Schema
 
 _JSON_PATTERN = r"""
     (?P<BRACE_BRACKET>

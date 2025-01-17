@@ -26,8 +26,8 @@ pip install regex
 ### Example
 
 ```python
-from custom_schema import Schema
-from json_rescue import JSONRescue
+from jsonrescue.custom_schema import Schema
+from jsonrescue.parser import JSONRescue
 
 # Define a schema for validation
 schema = Schema(

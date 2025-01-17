@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='JSONRescue',
-    version="0.1.0",
+    name='jsonrescue',
+    version="0.1.2",
     description="A library to parse and repair malformed JSON-like text.",
     author='Jesse English',
     author_email='jme900@gmail.com',
@@ -12,6 +12,7 @@ setup(
     license="MIT",
     packages=find_packages(),
     include_package_data=True,
+    package_data={"jsonrescue": ["*.py"]},
     install_requires=[
         "regex",
     ],
