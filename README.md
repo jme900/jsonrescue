@@ -18,7 +18,7 @@
 ## Installation
 
 ```bash
-pip install regex
+pip install jsonrescue
 ```
 
 ## Usage
