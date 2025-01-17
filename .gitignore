@@ -16,3 +16,9 @@ __pycache__/test.cpython-312.pyc
 .idea/vcs.xml
 
 .idea/
+
+__pycache__/custom_schema.cpython-310.pyc
+
+__pycache__/json_rescue.cpython-310.pyc
+
+__pycache__/test.cpython-310.pyc
