@@ -19,15 +19,16 @@ _JSON_PATTERN = r"""
 BRACE_BRACKET = regex.compile(_JSON_PATTERN, regex.VERBOSE | regex.MULTILINE)
 
 
-class JSONRescue:
-    def __init__(self, schema: Schema):
+class Parser:
+    def __init__(self, schema: Schema = None):
         self.schema = schema
 
     def rescue(self, text: str) -> Any:
         try:
-            loaded = json.loads(text)
-            return self.schema.validated(loaded)
+            result = json.loads(text)
+            return self.schema.validated(result) if self.schema else result
         except JSONDecodeError:
+            results = []
             json_candidates = self.extract_json_candidates(text)
             for candidate in json_candidates:
                 fixed_json = self.fix_json(candidate)
@@ -35,11 +36,19 @@ class JSONRescue:
                     continue
                 try:
                     loaded = json.loads(fixed_json)
-                    validated_data = self.schema.validated(loaded)
-                    if validated_data is not None:
-                        return validated_data
+                    if self.schema:
+                        validated_data = self.schema.validated(loaded)
+                        if validated_data is not None:
+                            return validated_data
+                    else:
+                        if isinstance(loaded, list):
+                            results.extend(loaded)
+                        else:
+                            results.append(loaded)
                 except JSONDecodeError:
                     continue
+            if len(results) > 0:
+                return results if len(results) > 1 else results[0]
 
         return None
 
@@ -50,7 +59,7 @@ class JSONRescue:
         """
         missing_curly = abs(text.count('{') - text.count('}'))
         missing_square = abs(text.count('[') - text.count(']'))
-        if missing_curly > 0 or  missing_square > 0:
+        if missing_curly > 0 or missing_square > 0:
             # Return a corrected text with ensured brackets
             text = self.ensure_ending_brackets(text)
         candidates = BRACE_BRACKET.findall(text)
@@ -58,11 +67,14 @@ class JSONRescue:
 
     def fix_json(self, json_str: str) -> str:
         """ Sequentially attempt fixes on a JSON candidate. """
+        json_str = re.sub(r'\s+', ' ', json_str).strip()
         json_str = self.fix_keys(json_str)
         # Fix unquoted string values (now handles multi-word)
         json_str = self.fix_string_values(json_str)
         # Escape illegal characters (including inner double quotes)
         json_str = self.escape_illegal_characters(json_str)
+        # Insert commas between adjacent objects/arrays
+        json_str = self.insert_missing_commas(json_str)
         return json_str
 
     @staticmethod
@@ -207,3 +219,20 @@ class JSONRescue:
             result.append(opening_brackets[opening])
 
         return ''.join(result)
+
+    @staticmethod
+    def insert_missing_commas(json_str: str) -> str:
+        """
+        Insert commas between adjacent objects/arrays
+        """
+        # Insert commas between adjacent objects
+        json_str = re.sub(r'}\s*{', '},{', json_str)
+        # Insert commas between adjacent arrays
+        json_str = re.sub(r'\]\s*\[', '],[', json_str)
+
+        # Insert comma between a value and the next key, if missing
+        # e.g. "... value "next_key": ..." -> "... value, "next_key": ..."
+        # json_str = re.sub(r'(":\s*[^",{}\[\]]+)\s*"(\w+)":', r'\1, "\2":', json_str)
+
+        return json_str
+

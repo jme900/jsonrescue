@@ -1,8 +1,9 @@
-# JSONRescue
+# JSON Rescue
 
 ## Overview
 
-`JSONRescue` is a robust Python library designed to parse and repair malformed JSON-like text, specifically targeting common errors found in AI model responses that fail to return valid JSON. The library employs heuristics to identify, fix, and validate JSON structures against a provided schema, ensuring data consistency and correctness.
+JSON Rescue is a robust Python library designed to parse and repair malformed JSON-like text, specifically 
+targeting common errors found in AI model responses that fail to return valid JSON. The library employs heuristics to identify, fix, and validate JSON structures against a provided schema, ensuring data consistency and correctness.
 
 ## Features
 
@@ -27,7 +28,7 @@ pip install jsonrescue
 
 ```python
 from jsonrescue.custom_schema import Schema
-from jsonrescue.parser import JSONRescue
+from jsonrescue.parser import Parser
 
 # Define a schema for validation
 schema = Schema(
@@ -40,7 +41,7 @@ schema = Schema(
     required=['name', 'age']
 )
 
-parser = JSONRescue(schema)
+parser = Parser(schema)
 
 malformed_json = """
 {
@@ -63,33 +64,38 @@ else:
 1. **Missing Quotes Around Keys or Values:**
    - Input: `{name: John Doe, age: 22}`
    - Output: `{"name": "John Doe", "age": 22}`
-
-2. **Escaped Illegal Characters:**
-   - Input: `{ "name": "John \"Doe\"", "age": 30}`
-   - Output: `{ "name": "John \"Doe\"", "age": 30}`
-
-3. **Fixing Missing Brackets:**
-   - Input: `{"name": "Jane"`
-   - Output: `{ "name": "Jane" }`
-
-4. **Handling Multiple Objects in Text:**
-   - Input: `Here is {"name": "Dana", "age": 27}{"name": "Chris", "age": 35}`
-   - Output: `{"name": "Dana", "age": 27}` (First valid object parsed)
-
-5. **Unquoted String Values:**
-   - Input: `{"key": Value, "number": 123}`
-   - Output: `{"key": "Value", "number": 123}`
+2. **Additional Text Around Object:**
+   - Input: `Here is your result:\n{name: John Doe, age: 22}\n\nThank you!`
+   - Output: `{"name": "John Doe", "age": 22}`
+3. **Unescaped Quotes Within Values:**
+   - Input: `{"name": "John "Deere" Doe", "age": 30}`
+   - Output: `{"name": "John \"Deere\" Doe", "age": 30}`
+4. **Fixing Broken Endings** - adds missing double-quotes as well as ending brackets:
+   - Input: `{"name": "Bob", "age": 35, "emails": ["bob@example.com`
+   - Output: `{"name": "Bob", "age": 35, "emails": ["bob@example.com"]}`
+5. **Handling Multiple Objects in Text:** - even when without commas seperating the objects
+   - Input: `{"name": "Dana", "age": 27}{"name": "Chris", "age": 35}`
+   - Output: `{"name": "Dana", "age": 27}` (Picks first valid object parsed if schema was an object) _or_ 
+   - Alternative Output: `[{"name": "Dana", "age": 27},{"name": "Chris", "age": 35}]` (if schema was an array or if 
+     no schema was provided)
+6. **Handling Arrays When Object Expected:**
+   - Input: `[{"name": "Alice", "age": 28}]`
+   - Output: `{"name": "Alice", "age": 28}`
+7. **Handling Object When Array Expected:**
+   - Input: `{"name": "Alice", "age": 28}`
+   - Output: `[{"name": "Alice", "age": 28}]`
 
 ## Key Components
 
-### Class: `JSONRescue`
+### Class: `Parser`
 
 #### Initialization
 
 ```python
-JSONRescue(schema: Schema)
+Parser(schema: Schema)
 ```
-- **schema:** An instance of the `Schema` class defining the expected JSON structure.
+- **schema:** An instance of the `Schema` class defining the expected JSON structure. To parse the text for JSON 
+  without any expected structure, simply skip defining the `Schema`
 
 #### Methods
 
@@ -114,6 +120,9 @@ JSONRescue(schema: Schema)
 
 7. **`ensure_ending_brackets(json_str: str) -> str`**
    - Fixes mismatched or missing brackets.
+
+8. **`insert_missing_commas(json_str: str) -> str`**
+   - Insert commas between adjacent objects/arrays
 
 ## Advanced Configuration
 
